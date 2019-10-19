@@ -45,7 +45,11 @@ def getFood(diningHall,mealTime):
     print(foodList)
     return foodList
 def main():
-    getFood("schiletter", "allday")
+    file = open("food.txt", "w+")
+    
+    fuud = getFood("core", "allday")
+    file.write(str(fuud)) 
+    file.close()
 
 if __name__ == "__main__":
     main()
