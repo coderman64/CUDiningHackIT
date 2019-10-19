@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Home Tab</title>
+  <link rel="stylesheet" href="resetstyle.css">
+  <link rel="stylesheet" href="home.css">
+  <link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Lilita+One" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyAciF6tIYYTc7hbE1OXLZ7E3wCVsu0qRW8",
+      authDomain: "cuhackit-cd650.firebaseapp.com",
+      databaseURL: "https://cuhackit-cd650.firebaseio.com",
+      projectId: "cuhackit-cd650",
+      storageBucket: "cuhackit-cd650.appspot.com",
+      messagingSenderId: "279286731064",
+      appId: "1:279286731064:web:4fabe058254c87e17a71cd",
+      measurementId: "G-Q1FBFFYXQR"
+    };
+    firebase.initializeApp(config);
+  </script>
+  <script type="text/javascript">
+    var currentGroupColor;
+    var userRef;
+    var currentposts = {};
+    var currentFollowing = [];
+    initApp = function () {
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+          // User is signed in.
+          userRef = user;
+          var database = firebase.database();
+          var displayName = user.displayName;
+          this.userPic = document.getElementById('user-pic');
+          var email = user.email;
+          var emailVerified = user.emailVerified;
+          var photoURL = user.photoURL;
+          var uid = user.uid;
+          var phoneNumber = user.phoneNumber;
+          var providerData = user.providerData;
+          this.userPic.src = photoURL;
+          try {
+            firebase.database().ref().child('users' + uid).set({
+              username: displayName,
+              email: email,
+              profile_picture: photoURL,
+              userId: uid
+            });
+
+          }
+          catch (error) {
+            firebase.database().ref().child('users' + uid).update({
+              username: displayName,
+              email: email,
+              profile_picture: photoURL,
+              userId: uid
+
+            });
+
+          }
+
+          //console.log("Trying to add the data");
+          user.getIdToken().then(function (accessToken) {
+            document.getElementById('sign-in-status').textContent = 'Signed in';
+            document.getElementById('sign-in').textContent = 'Sign out';
+            document.getElementById('account-details').textContent = JSON.stringify({
+              displayName: displayName,
+              email: email,
+              emailVerified: emailVerified,
+              phoneNumber: phoneNumber,
+              photoURL: photoURL,
+              uid: uid,
+              accessToken: accessToken,
+              providerData: providerData
+            }, null, '  ');
+          });
+        } else {
+          // User is signed out.
+          document.getElementById('sign-in-status').textContent = 'Signed out';
+          document.getElementById('sign-in').textContent = 'Sign in';
+          document.getElementById('account-details').textContent = 'null';
+        }
+      }, function (error) {
+        console.log(error);
+      });
+    };
+    window.addEventListener('load', function () {
+      initApp();
+
+    });
+    function writeNewPost(uid, uname, pic, heading, text, image) {
+      console.log("running writenewpost");
+      var modal = document.getElementById('myModal').style.display = "none";
+      var newPostKey = firebase.database().ref().child('posts').push().key;
+      try {
+        console.log(image[0].name);
+        var postData = {
+          author: uname,
+          uid: uid,
+          body: text,
+          title: heading,
+          date: new Date(),
+          picturesrc: pic,
+          postId: newPostKey,
+          imagename: image[0].name
+        };
+      }
+      catch (error) {
+        var postData = {
+          author: uname,
+          uid: uid,
+          body: text,
+          title: heading,
+          date: new Date(),
+          picturesrc: pic,
+          postId: newPostKey,
+          imagename: "null"
+        };
+      }
+
+
+
+      try {
+        var storageRef = firebase.storage().ref().child(newPostKey + "/" + image[0].name).put(image[0]).then(function (imageSnapshot) {
+          console.log("name of the image: " + image[0].name);
+          console.log("uploaded image successfully");
+        });
+      }
+      catch (error) {
+        console.log("There was an error when uploading the image " + error);
+      }
+      // Get a key for a new Post.
+      // Write the new post's data simultaneously in the posts list and the user's post list.
+      var updates = {};
+      updates['/posts/' + newPostKey] = postData;
+      updates['/user-posts/' + uid + '/' + newPostKey] = postData;
+      firebase.database().ref().child('posts/' + newPostKey).update(postData);
+      firebase.database().ref().child('user-posts/' + uid + '/' + newPostKey).update(postData);
+      //checkForTags(text.split(" "), postData, newPostKey);
+      var title = document.getElementById('titleText').value = "";
+      var text = document.getElementById('bodyText').value = "";
+      console.log("added post");
+    }
+    var addPostPresent = false;
+  </script>
+</head>
+
+<nav class="nav-login">
+  <ul>
+    <li><a href="home.html">Home</a></li>
+    <li><a href="groups.html">Groups</a></li>
+    <li><a href="contact.html">Find</a></li>
+    <li><a href="login.html">Profile</a></li>
+
+    <li>
+      <div id="firebaseui-auth-container"></div>
+    </li>
+    <li>
+      <div><img id="user-pic"
+          src="https://cdn4.iconfinder.com/data/icons/forum-buttons-and-community-signs-1/794/profile-3-512.png"
+          style="  width: 40px;height: 40px;background-size: 40px;border-radius: 20px; right: 10px; top: 10px;"></div>
+    </li>
+  </ul>
+</nav>
+
+<body>
+  <button type="button" class="button" id="addPost">+</button>
+  <button type="button" class="button" id="addGroup">Create Group</button>
+
+  <br>
+  <div id="postContainer"></div>
+
+  <!-- The Modal -->
+  <div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close">&times;</span>
+        <h2 id="headerTitle">Add Post</h2>
+      </div>
+      <div class="modal-body">
+        <h3 id="titleLabel"></h3>
+        <input id="titleText" type="text" name="" value="">
+        <h3 id="bodyLabel"></h3>
+        <input id="bodyText" type="text" name="" value="">
+        <h3 id="tagsLabel" style="display: none">Tags</h3>
+        <input id="tagsText" type="text" name="" value="" style="display: none">
+        <h3 id="fileLabel" style="display: none"></h3>
+        <input id="fileOpener" style="display: none" type="file" name="" value="">
+        <div id="colorChooser" style="height: 50px;">
+          <input type="color" id="colorInput" style="width: 60;height:30px;" value="#e1e1e1">
+          <!--
+          <button id="blue" onclick="setColor('blue')" style="width: 30;height:20px;background-color: blue;"></button>
+          <button id="green" onclick="setColor('green')"style="width: 30;height:20px;background-color: green;"></button>
+          <button id="orange" onclick="setColor('orange')"style="width: 30;height:20px;background-color: orange;"></button>
+          <button id="yellow" onclick="setColor('yellow')"style="width: 30;height:20px;background-color: yellow;"></button>
+          <button id="red" onclick="setColor('red')"style="width: 30;height:20px;background-color: red;"></button>
+          <p id="colorLabel" style="display:none;"></p>
+
+          -->
+
+        </div>
+
+        <button id="submitButton" type="button">Post It!</button>
+      </div>
+    </div>
+
+    <script>
+      // Get the modal
+      var modal = document.getElementById('myModal');
+
+      // Get the button that opens the modal
+      var postButton = document.getElementById("addPost");
+
+      var groupButton = document.getElementById("addGroup");
+
+      // Get the <span> element that closes the modal
+      var span = document.getElementsByClassName("close")[0];
+
+      // When the user clicks the button, open the modal
+      postButton.onclick = function () {
+        modal.style.display = "block";
+        document.getElementById("tagsText").style.display = "none";
+        document.getElementById("tagsLabel").style.display = "none";
+        document.getElementById("fileLabel").style.display = "block";
+        document.getElementById("fileOpener").style.display = "block";
+        document.getElementById("colorChooser").style.display = "none";
+
+        var modalHeader = document.getElementById("headerTitle");
+        modalHeader.innerHTML = "Add Post";
+        var title = document.getElementById("titleLabel");
+        title.innerHTML = "Title"
+        var body = document.getElementById("bodyLabel");
+        body.innerHTML = "Body"
+        var fileLabel = document.getElementById("fileLabel");
+        fileLabel.innerHTML = "Image (optional)";
+        var submit = document.getElementById('submitButton');
+        submit.onclick = function () {
+          console.log("Submitting post.");
+          console.log(document.getElementById("fileOpener").files);
+          writeNewPost(userRef.uid, userRef.displayName, userRef.photoURL, document.getElementById("titleText").value, document.getElementById("bodyText").value, document.getElementById("fileOpener").files)
+        }
+      }
+
+      groupButton.onclick = function () {
+        modal.style.display = "block";
+        document.getElementById("tagsText").style.display = "block";
+        document.getElementById("tagsLabel").style.display = "block";
+        document.getElementById("colorChooser").style.display = "block";
+        document.getElementById("fileLabel").style.display = "none";
+        document.getElementById("fileOpener").style.display = "none";
+        var modalHeader = document.getElementById("headerTitle");
+        modalHeader.innerHTML = "Add Group";
+        var groupName = document.getElementById("titleLabel");
+        groupName.innerHTML = "Group Name"
+        var groupDesc = document.getElementById("bodyLabel");
+        groupDesc.innerHTML = "Description"
+
+        //Adding extra imput
+        var modalContainer = document.getElementById("modal-Body");
+        var submit = document.getElementById('submitButton');
+        submit.onclick = function () {
+          console.log("Submitting group.");
+          //console.log(document.getElementById("fileOpener").files);
+          modal.style.display = "none";
+        }
+
+
+      }
+
+      // When the user clicks on <span> (x), close the modal
+      span.onclick = function () {
+        modal.style.display = "none";
+      }
+
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+
+
+    </script>
+    <script>
+      function create_custom_dropdowns() {
+        $('select').each(function (i, select) {
+          if (!$(this).next().hasClass('dropdown-select')) {
+            $(this).after('<div class="dropdown-select wide ' + ($(this).attr('class') || '') + '" tabindex="0"><span class="current"></span><div class="list"><ul></ul></div></div>');
+            var dropdown = $(this).next();
+            var options = $(select).find('option');
+            var selected = $(this).find('option:selected');
+            dropdown.find('.current').html(selected.data('display-text') || selected.text());
+            options.each(function (j, o) {
+              var display = $(o).data('display-text') || '';
+              dropdown.find('ul').append('<li class="option ' + ($(o).is(':selected') ? 'selected' : '') + '" data-value="' + $(o).val() + '" data-display-text="' + display + '">' + $(o).text() + '</li>');
+            });
+          }
+        });
+
+        $('.dropdown-select ul').before('<div class="dd-search"><input id="txtSearchValue" autocomplete="off" onkeyup="filter()" class="dd-searchbox" type="text"></div>');
+      }
+
+      // Event listeners
+
+      // Open/close
+      $(document).on('click', '.dropdown-select', function (event) {
+        if ($(event.target).hasClass('dd-searchbox')) {
+          return;
+        }
+        $('.dropdown-select').not($(this)).removeClass('open');
+        $(this).toggleClass('open');
+        if ($(this).hasClass('open')) {
+          $(this).find('.option').attr('tabindex', 0);
+          $(this).find('.selected').focus();
+        } else {
+          $(this).find('.option').removeAttr('tabindex');
+          $(this).focus();
+        }
+      });
+
+      // Close when clicking outside
+      $(document).on('click', function (event) {
+        if ($(event.target).closest('.dropdown-select').length === 0) {
+          $('.dropdown-select').removeClass('open');
+          $('.dropdown-select .option').removeAttr('tabindex');
+        }
+        event.stopPropagation();
+      });
+
+      function filter() {
+        var valThis = $('#txtSearchValue').val();
+        $('.dropdown-select ul > li').each(function () {
+          var text = $(this).text();
+          (text.toLowerCase().indexOf(valThis.toLowerCase()) > -1) ? $(this).show() : $(this).hide();
+        });
+      };
+      // Search
+
+      // Option click
+      $(document).on('click', '.dropdown-select .option', function (event) {
+        $(this).closest('.list').find('.selected').removeClass('selected');
+        $(this).addClass('selected');
+        var text = $(this).data('display-text') || $(this).text();
+        $(this).closest('.dropdown-select').find('.current').text(text);
+        $(this).closest('.dropdown-select').prev('select').val($(this).data('value')).trigger('change');
+      });
+
+      // Keyboard events
+      $(document).on('keydown', '.dropdown-select', function (event) {
+        var focused_option = $($(this).find('.list .option:focus')[0] || $(this).find('.list .option.selected')[0]);
+        // Space or Enter
+        //if (event.keyCode == 32 || event.keyCode == 13) {
+        if (event.keyCode == 13) {
+          if ($(this).hasClass('open')) {
+            focused_option.trigger('click');
+          } else {
+            $(this).trigger('click');
+          }
+          return false;
+          // Down
+        } else if (event.keyCode == 40) {
+          if (!$(this).hasClass('open')) {
+            $(this).trigger('click');
+          } else {
+            focused_option.next().focus();
+          }
+          return false;
+          // Up
+        } else if (event.keyCode == 38) {
+          if (!$(this).hasClass('open')) {
+            $(this).trigger('click');
+          } else {
+            var focused_option = $($(this).find('.list .option:focus')[0] || $(this).find('.list .option.selected')[0]);
+            focused_option.prev().focus();
+          }
+          return false;
+          // Esc
+        } else if (event.keyCode == 27) {
+          if ($(this).hasClass('open')) {
+            $(this).trigger('click');
+          }
+          return false;
+        }
+      });
+
+      $(document).ready(function () {
+        create_custom_dropdowns();
+      });
+    </script>
+</body>
+
+</html>
