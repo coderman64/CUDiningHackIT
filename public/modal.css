@@ -128,7 +128,9 @@
   option:hover {
     background-color: #11E8EA;
   }
-  
+  #currentIngredients{
+      height: 50px;
+  }
   #bluebutton {
     width: 30px;
     height: 38px;
