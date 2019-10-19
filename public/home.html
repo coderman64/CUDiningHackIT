@@ -173,11 +173,11 @@
     function loadFeed() {
       console.log(completeArray);
       completeArray = [
-      {
-        ingredients: [],
-        body: "",
-      }
-    ];
+        {
+          ingredients: [],
+          body: "",
+        }
+      ];
       console.log("resent length: " + completeArray.length);
       console.log("first element: " + completeArray[0][0]);
       console.log("running loadFeed");
@@ -247,7 +247,7 @@
             completeArray.push({ ingredients: [], body: "" });
           }
           completeArray[arraycount1].body = childData["body"];
-          completeArray[arraycount1].ingredients=childData["ingredients"].split(", ");
+          completeArray[arraycount1].ingredients = childData["ingredients"].split(", ");
           //arraycount2 += 1;
           //completeArray[arraycount1][arraycount2] = childData["body"];
           //CheckTags(arraycount1, arraycount2);
@@ -294,7 +294,24 @@
         });
       });
       arraycount1 = 0;
+      var shownarray=[];
+      for (var i = 0; i < completeArray.length; i++) {
+        for (var a = 0; a < completeArray[i].ingredients.length; a++) {
+          for (var j = 0; j < menuarray.length; j++) {
+            if (menuarray[j] == completeArray[i].ingredients[a]) {
+              shownarray.push(completeArray[i].body);
+            }
+          }
+        }
+      }
+
     }
+    for(var n=0;n<shownarray.length;n++){
+      var displayed=document.createElement("h3");
+      displayed.innerHTML=shownarray[n];
+      document.appendChild(displayed);
+    }
+
     function parseDate(input) {
       var parts = input.match(/(\d+)/g);
       // new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
@@ -313,13 +330,13 @@
     };
     var menus = {};
 
-    function printSchilletter(){
+    function printSchilletter() {
       console.log("Schilletter: " + menus.schiletter.toString());
     }
-    function printCore(){
+    function printCore() {
       console.log("FreshFoodCompany: " + menus.core.toString());
     }
-    function reqListener(){
+    function reqListener() {
       console.log(this.responseText);
       menus = JSON.parse(oReq.responseText);
       printSchilletter();
@@ -332,8 +349,20 @@
     oReq.send();
 
     //console.log(oReq.responseText);
+    var schiletterPress = false;
+    var corePress = false;
 
-    //var menus = JSON.parse(oReq.responseText);
+    function schilletterButton() {
+      schiletterPress = true;
+      corePress = false;
+      console.log("schilleter pressed.");
+    }
+
+    function coreButton() {
+      corePress = true;
+      schiletterPress = false;
+      console.log("core pressed.");
+    }
 
   </script>
 
@@ -377,8 +406,9 @@
     <div class="text-center">
       <div class="diningHall">
         <div class="main" style="margin-top: 30px;">
-            <button type="button" class="btn btn-secondary" id="Schilleter">Schilleter</h2>
-            <button type="button" class="btn btn-secondary" style="margin-left: 10px;" id="Core">Fresh Food Company</h2>
+          <button type="button" class="btn btn-secondary" onclick="schilletterButton()" id="Schilleter">Schilleter</h2>
+            <button type="button" class="btn btn-secondary" onclick="coreButton()" style="margin-left: 10px;"
+              id="Core">Fresh Food Company</h2>
         </div>
       </div>
     </div>
@@ -427,7 +457,7 @@
         <input id="bodyText" type="text" name="" value="">
         <br>
         <h2>Ingredients</h2>
-        <input list=text_editors id ="ingredientlist">
+        <input list=text_editors id="ingredientlist">
         <button id="bluebutton" onclick="addIngredient()">▼</button>
         <datalist id="text_editors">
           <select multiple size=8 id="ingredientselect" class="ingredientselect">
@@ -451,24 +481,24 @@
   </div>
 
   <script>
-    var uploadString="";
+    var uploadString = "";
     function addIngredient() {
       var newIngredient = document.getElementById("newIngredient");
       //newIngredient.id="newIngredient";
-      
-      newIngredient.style.height="25px";
+
+      newIngredient.style.height = "25px";
       var e = document.getElementById("ingredientlist");
       //console.log("E options is " + e.options);
       //console.log(e.selectedIndex);
       console.log("value of select is " + e.value);
-      if(uploadString==""){
-        uploadString+=e.value;
+      if (uploadString == "") {
+        uploadString += e.value;
         newIngredient.innerHTML += e.value;
 
       }
-      else{
-        uploadString+=", " + e.value;
-        newIngredient.innerHTML+=", " + e.value;
+      else {
+        uploadString += ", " + e.value;
+        newIngredient.innerHTML += ", " + e.value;
       }
       document.getElementById("currentIngredients").appendChild(newIngredient);
       console.log("pressed blueb button");

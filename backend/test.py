@@ -17,5 +17,14 @@ def get_menus():
 	except:
 		return '{"schiletter":["ERROR: json not found!"],"core":["ERROR: json not found!"]}'
 
+@app.route('/fulllist.json')
+def get_fulllist():
+	try:
+		file = open("./fulllist.json")
+		jString = file.read()
+		return jString
+	except:
+		return '{"items":["ERROR: json not found!"]}'
+
 if __name__ == "__main__":
 	app.run(host="0.0.0.0",port=80)
