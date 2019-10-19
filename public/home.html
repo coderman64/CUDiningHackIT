@@ -295,6 +295,30 @@
       var searching=completeArray[firstindex][secondindex].split(" ");
       for(var i=0;i<searching.length)
     }*/
+    var menus = {};
+
+    function printSchilletter(){
+      console.log("Schilletter: " + menus.schiletter.toString());
+    }
+    function printCore(){
+      console.log("FreshFoodCompany: " + menus.core.toString());
+    }
+    function reqListener(){
+      console.log(this.responseText);
+      menus = JSON.parse(oReq.responseText);
+      printSchilletter();
+      printCore();
+    }
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", reqListener);
+    oReq.open("GET", "http://ec2-52-14-74-248.us-east-2.compute.amazonaws.com/menus.json");
+    oReq.send();
+
+    //console.log(oReq.responseText);
+
+    //var menus = JSON.parse(oReq.responseText);
+
   </script>
 
 </head>
@@ -324,7 +348,7 @@
       <div class="container">
         <h1 class="masthead-heading mb-0">Clemson Dining Hacks</h1>
         <h2 class="masthead-subheading mb-0">Will Rock Your Socks Off</h2>
-        <a href="#" id="addPost" class="btn btn-primary btn-xl rounded-pill mt-5">Submit a Dining Hack</a>
+        <a id="addPost" class="btn btn-primary btn-xl rounded-pill mt-5">Submit a Dining Hack</a>
       </div>
     </div>
     <div class="bg-circle-1 bg-circle"></div>
@@ -367,7 +391,7 @@
   <!-- Footer -->
   <footer class="py-5 bg-black">
     <div class="container">
-      <p class="m-0 text-center text-white small">Copyright &copy; Your Website 2019</p>
+      <p class="m-0 text-center text-white small">Go tigers!</p>
     </div>
     <!-- /.container -->
   </footer>
