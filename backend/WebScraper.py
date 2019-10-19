@@ -4,7 +4,7 @@ import datetime #imports time and day
 # user input for diningHall
 import pytz # import pytz library for timezone data
 
-def getFood(diningHall,mealTime):
+def getFood(diningHall,mealTime,date):
 
     #where user is eating and key to add to url
     diningHallMap = {
@@ -20,7 +20,6 @@ def getFood(diningHall,mealTime):
         "dinner":"893"
     }
     # sets date to variables to be used in URL
-    date = datetime.datetime.now(tz=pytz.timezone('America/New_York'))
     y = date.year
     m = date.month
     day = date.day
@@ -48,8 +47,9 @@ def getFood(diningHall,mealTime):
     return foodList
 def main():
     # some random example
+    date = datetime.datetime.now(tz=pytz.timezone('America/New_York'))
     file = open("food.txt", "w+")
-    fuud = getFood("core", "allday")
+    fuud = getFood("core", "allday",date)
     file.write(str(fuud))
     file.close()
 
