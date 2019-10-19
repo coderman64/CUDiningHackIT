@@ -94,7 +94,60 @@
       initApp();
 
     });
+    function writeNewPost(uid, uname, pic, heading, text, image) {
+      console.log("running writenewpost");
+      var modal = document.getElementById('myModal').style.display = "none";
+      var newPostKey = firebase.database().ref().child('posts').push().key;
+      try {
+        console.log(image[0].name);
+        var postData = {
+          author: uname,
+          uid: uid,
+          body: text,
+          title: heading,
+          date: new Date(),
+          picturesrc: pic,
+          postId: newPostKey,
+          imagename: image[0].name
+        };
+      }
+      catch (error) {
+        var postData = {
+          author: uname,
+          uid: uid,
+          body: text,
+          title: heading,
+          date: new Date(),
+          picturesrc: pic,
+          postId: newPostKey,
+          imagename: "null"
+        };
+      }
 
+
+
+      try {
+        var storageRef = firebase.storage().ref().child(newPostKey + "/" + image[0].name).put(image[0]).then(function (imageSnapshot) {
+          console.log("name of the image: " + image[0].name);
+          console.log("uploaded image successfully");
+        });
+      }
+      catch (error) {
+        console.log("There was an error when uploading the image " + error);
+      }
+      // Get a key for a new Post.
+      // Write the new post's data simultaneously in the posts list and the user's post list.
+      var updates = {};
+      updates['/posts/' + newPostKey] = postData;
+      updates['/user-posts/' + uid + '/' + newPostKey] = postData;
+      firebase.database().ref().child('posts/' + newPostKey).update(postData);
+      firebase.database().ref().child('user-posts/' + uid + '/' + newPostKey).update(postData);
+      //checkForTags(text.split(" "), postData, newPostKey);
+      var title = document.getElementById('titleText').value = "";
+      var text = document.getElementById('bodyText').value = "";
+      console.log("added post");
+    }
+    var addPostPresent = false;
   </script>
 </head>
 
@@ -192,6 +245,7 @@
         submit.onclick = function () {
           console.log("Submitting post.");
           console.log(document.getElementById("fileOpener").files);
+          writeNewPost(userRef.uid, userRef.displayName, userRef.photoURL, document.getElementById("titleText").value, document.getElementById("bodyText").value, document.getElementById("fileOpener").files)
         }
       }
 
