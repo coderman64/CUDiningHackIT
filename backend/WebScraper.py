@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup # to make the syntax pretty
 import urllib.request # to get html document
 import datetime #imports time and day
 # user input for diningHall
+import pytz # import pytz library for timezone data
 
 def getFood(diningHall,mealTime):
 
@@ -19,11 +20,12 @@ def getFood(diningHall,mealTime):
         "dinner":"893"
     }
     # sets date to variables to be used in URL
-    date = datetime.datetime.now()
+    date = datetime.datetime.now(tz=pytz.timezone('America/New_York'))
     y = date.year
     m = date.month
     day = date.day
     fulldate = str(m) + "%2F" + str(day) + "%2F" + str(y)
+    print(fulldate)
     #if shchiletter is closed return string
     if (datetime.datetime.today().weekday() == 5) and (diningHall == "schiletter"):
         return ["schiletter is closed on saturdays"]
@@ -45,6 +47,7 @@ def getFood(diningHall,mealTime):
     #print(foodList)
     return foodList
 def main():
+    # some random example
     file = open("food.txt", "w+")
     fuud = getFood("core", "allday")
     file.write(str(fuud))
