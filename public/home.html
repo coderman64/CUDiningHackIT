@@ -312,6 +312,7 @@
       console.log("pressed blueb button");
     };
     var menus = {};
+    var fulllist = {};
 
     function printSchilletter(){
       console.log("Schilletter: " + menus.schiletter.toString());
@@ -326,14 +327,31 @@
       printCore();
     }
 
+    console.log("SENDING REQUEST");
+
     var oReq = new XMLHttpRequest();
     oReq.addEventListener("load", reqListener);
     oReq.open("GET", "http://ec2-52-14-74-248.us-east-2.compute.amazonaws.com/menus.json");
     oReq.send();
 
-    //console.log(oReq.responseText);
+    function fullReqLis(){
+      console.log("RESPONSE RECIEVED");
+      fulllist = JSON.parse(fullReq.responseText);
+      var dropdown = document.getElementById("ingredientselect");
+      for(var i = 0; i < fulllist.items.length; i++){
+        console.log("NEW ITEM: "+items[i]);
+        var newitem = document.createElement("option");
+        newitem.innerHTML = fulllist.items[i];
+        newitem.value = fulllist.items[i];
+        dropdown.appendChild(newitem);
+      }
+    }
 
-    //var menus = JSON.parse(oReq.responseText);
+    var fullReq = new XMLHttpRequest();
+    fullReq.addEventListener("load", fullReqLis);
+    fullReq.open("GET", "http://ec2-52-14-74-248.us-east-2.compute.amazonaws.com/fulllist.json");
+    fullReq.send();
+    console.log("REQUEST SENT");
 
   </script>
 
@@ -432,15 +450,15 @@
         <input list=text_editors id ="ingredientlist">
         <button id="bluebutton" onclick="addIngredient()">▼</button>
         <datalist id="text_editors">
-          <select multiple size=8 id="ingredientselect" class="ingredientselect">
-            <option value="Atom">Atom
+          <select multiple id="ingredientselect" class="ingredientselect">
+            <!-- <option value="Atom">Atom
             <option value="Brackets">Brackets
             <option value="Notepad ++">Notepad ++
             <option value="Notepad">Notepad
             <option value="Sublime Text">Sublime Text
             <option value="TextEdit">TextEdit
             <option value="TextMate">TextMate
-            <option value="Wordpad">Wordpad
+            <option value="Wordpad">Wordpad -->
           </select>
         </datalist>
         <div id="currentIngredients" style="height:50px">
