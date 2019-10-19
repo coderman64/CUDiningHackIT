@@ -26,10 +26,15 @@
     firebase.initializeApp(config);
   </script>
   <script type="text/javascript">
+    foods = ["fries", "burgers", "hamburger", "pizza", "cheese", "pepperoni", "pasta", "brownies", "cupcakes"];
+    var completeArray = [
+      [" ", " "]
+    ];
+    var arraycount1 = 0;
+    var arraycount2 = 0;
     var currentGroupColor;
     var userRef;
     var currentposts = {};
-    var currentFollowing = [];
     initApp = function () {
       firebase.auth().onAuthStateChanged(function (user) {
         if (user) {
@@ -91,13 +96,16 @@
       });
     };
     window.addEventListener('load', function () {
-      initApp();
 
+      initApp();
+      //completeArray=[" "][" "];
+      loadFeed();
     });
     function writeNewPost(uid, uname, pic, heading, text, image) {
       console.log("running writenewpost");
       var modal = document.getElementById('myModal').style.display = "none";
       var newPostKey = firebase.database().ref().child('posts').push().key;
+
       try {
         console.log(image[0].name);
         var postData = {
@@ -148,6 +156,150 @@
       console.log("added post");
     }
     var addPostPresent = false;
+    function loadFeed() {
+
+      console.log("resent length: " + completeArray.length);
+      console.log("first element: " + completeArray[0][0]);
+
+      console.log("running loadFeed");
+      //var postContainer = document.getElementById("postContainer");
+      //var storage=firebase.storage().ref().child()
+      var leadsRef = firebase.database().ref().child('posts');
+      leadsRef.on('value', function (snapshot) {
+        //removeFeedNodes();
+        var postContainer = document.createElement('div');
+        postContainer.id = "postContainer";
+        snapshot.forEach(function (childSnapshot) {
+          var deletingPost = false;
+          var childData = childSnapshot.val();
+          console.log("childdata userid call returns: " + childData["uid"]);
+          var postDiv = document.createElement('div');
+          postDiv.id = "postDiv";
+          var userInfo = document.createElement("div");
+          userInfo.id = "userInfo";
+          postDiv.appendChild(userInfo);
+          var postData = document.createElement("div");
+          postData.id = "postData";
+          var userPicture = document.createElement("img");
+          userPicture.id = "user-feed-pic";
+          userPicture.src = childData["picturesrc"];
+          userInfo.appendChild(userPicture);
+          var userLabel = document.createElement("a");
+          userLabel.id = "userLabel";
+          userLabel.innerHTML = childData["author"];
+          userLabel.href = "profile.html/?uid=" + childData["uid"];
+          userLabel.style.color = "black";
+          try {
+            userInfo.style.backgroundColor = childData["color"];
+          }
+          catch (error) {
+
+          }
+          userInfo.appendChild(userLabel);
+
+          var imageElement = document.createElement("img");
+          imageElement.id = "imageElement";
+
+          try {
+            imageElement.id = "imageElement";
+
+            firebase.storage().ref().child(childData["postId"] + "/" + childData["imagename"]).getDownloadURL().then(function (url) {
+              var test = url;
+              imageElement.src = test;
+              postDiv.style.gridArea = "span 2";
+            });
+            imageElement.style.margin = "auto";
+            imageElement.style.display = "block";
+          }
+          catch (error) {
+            //console.log("error when loading the image: " + error);
+            imageElement.remove();
+          }
+          if (childData["imagename"] === "null") {
+            console.log("the name is null");
+            imageElement.style.display = "none";
+          }
+
+          var titleText = document.createElement("h1");
+          titleText.id = "titleElement";
+          titleText.innerHTML = childData["title"];
+          postData.appendChild(titleText);
+          var bodyText = document.createElement("p");
+          bodyText.id = "bodyElement";
+          bodyText.innerHTML = childData["body"];
+          if (arraycount1 ==0) {
+
+          }
+          else {
+            completeArray.push(["",""]);
+
+          }
+          completeArray[arraycount1][arraycount2] = childData["title"];
+          arraycount2 += 1;
+          completeArray[arraycount1][arraycount2] = childData["body"];
+          arraycount2 = 0;
+          arraycount1 =arraycount1+ 1;
+          console.log(arraycount1);
+
+          var postedDate = document.createElement("p");
+          postedDate.id = "datePosted";
+          var month = parseDate(childData["date"]).getMonth() + 1;
+          var day = parseDate(childData["date"]).getDate();
+          var year = parseDate(childData["date"]).getFullYear();
+          postedDate.innerHTML = month.toString() + "/" + day.toString() + "/" + year.toString();
+          userInfo.appendChild(postedDate);
+          var likeButton = document.createElement("button");
+          likeButton.id = "likeButton";
+          likeButton.innerHTML = ":)";
+          var canLike = true;
+
+          if (childData['uid'] === userRef.uid) {
+            let deletePost = document.createElement("span");
+            deletePost.id = 'deletePost';
+            deletePost.textContent = "x";
+            userInfo.appendChild(deletePost);
+
+            deletePost.addEventListener('click', (e) => {
+              e.stopPropagation();
+              deletingPost = true;
+
+              leadsRef.child(childData["postId"]).remove();
+              firebase.database().ref().child("user-posts").child(userRef.uid).child(childData['postId']).remove();
+              try {
+                firebase.database().ref().child("groups").child(childData["group"]).child("posts").child(childData['postId']).remove();
+
+              }
+              catch (error) {
+                console.log(error);
+              }
+            })
+            
+          }
+
+
+
+          postData.appendChild(imageElement);
+          postData.appendChild(bodyText);
+
+          postData.appendChild(document.createElement("br"));
+          postData.appendChild(document.createElement("br"));
+
+
+          postDiv.appendChild(userInfo);
+          postDiv.appendChild(postData);
+          postContainer.prepend(postDiv);
+          document.body.appendChild(postContainer);
+
+        });
+      });
+
+      //arraycount1 = 0;
+    }
+    function parseDate(input) {
+      var parts = input.match(/(\d+)/g);
+      // new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
+      return new Date(parts[0], parts[1] - 1, parts[2]); // months are 0-based
+    }
   </script>
 </head>
 
@@ -196,15 +348,7 @@
         <input id="fileOpener" style="display: none" type="file" name="" value="">
         <div id="colorChooser" style="height: 50px;">
           <input type="color" id="colorInput" style="width: 60;height:30px;" value="#e1e1e1">
-          <!--
-          <button id="blue" onclick="setColor('blue')" style="width: 30;height:20px;background-color: blue;"></button>
-          <button id="green" onclick="setColor('green')"style="width: 30;height:20px;background-color: green;"></button>
-          <button id="orange" onclick="setColor('orange')"style="width: 30;height:20px;background-color: orange;"></button>
-          <button id="yellow" onclick="setColor('yellow')"style="width: 30;height:20px;background-color: yellow;"></button>
-          <button id="red" onclick="setColor('red')"style="width: 30;height:20px;background-color: red;"></button>
-          <p id="colorLabel" style="display:none;"></p>
 
-          -->
 
         </div>
 
@@ -250,6 +394,8 @@
       }
 
       groupButton.onclick = function () {
+        console.log(completeArray);
+        /*
         modal.style.display = "block";
         document.getElementById("tagsText").style.display = "block";
         document.getElementById("tagsLabel").style.display = "block";
@@ -271,7 +417,7 @@
           //console.log(document.getElementById("fileOpener").files);
           modal.style.display = "none";
         }
-
+        */
 
       }
 
