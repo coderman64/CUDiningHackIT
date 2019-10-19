@@ -25,7 +25,7 @@ def getFood(diningHall,mealTime):
     day = date.day
     fulldate = str(m) + "%2F" + str(day) + "%2F" + str(y)
     #if shchiletter is closed return string
-    if datetime.datetime.today().weekday() == 5 && diningHall == "schiletter":
+    if (datetime.datetime.today().weekday() == 5) and (diningHall == "schiletter"):
         return "schiletter is closed on saturdays"
     #returns url of menu with hall, meal, and date the user is looking for
     menu = "https://" + "clemson.campusdish.com/api/menus/GetMenu?locationId=%s" % diningHallMap[diningHall] + "&mode=Daily&periodId=%s" % mealMap[mealTime] + "&date=%s" %  fulldate
@@ -45,7 +45,7 @@ def getFood(diningHall,mealTime):
     print(foodList)
     return foodList
 def main():
-    getFood("", "")
+    getFood("schiletter", "allday")
 
 if __name__ == "__main__":
     main()
