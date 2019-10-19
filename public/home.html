@@ -28,7 +28,10 @@
   <script type="text/javascript">
     foods = ["fries", "burgers", "hamburger", "pizza", "cheese", "pepperoni", "pasta", "brownies", "cupcakes"];
     var completeArray = [
-      [" ", " "]
+      {
+        ingredients: [],
+        body: "",
+      }
     ];
     var arraycount1 = 0;
     var arraycount2 = 0;
@@ -231,13 +234,14 @@
 
           }
           else {
-            completeArray.push(["",""]);
+            completeArray.push({ingredients:[],body:""});
 
           }
-          completeArray[arraycount1][arraycount2] = childData["title"];
-          arraycount2 += 1;
-          completeArray[arraycount1][arraycount2] = childData["body"];
-          arraycount2 = 0;
+          completeArray[arraycount1].body = childData["body"];
+          //arraycount2 += 1;
+          //completeArray[arraycount1][arraycount2] = childData["body"];
+          //CheckTags(arraycount1, arraycount2);
+          //arraycount2 = 0;
           arraycount1 =arraycount1+ 1;
           console.log(arraycount1);
 
@@ -300,6 +304,11 @@
       // new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
       return new Date(parts[0], parts[1] - 1, parts[2]); // months are 0-based
     }
+    /*function CheckTags(firstindex, secondindex){
+      var searching=completeArray[firstindex][secondindex].split(" ");
+      for(var i=0;i<searching.length)
+
+    }*/
   </script>
 </head>
 
