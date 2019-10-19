@@ -128,7 +128,7 @@
           author: uname,
           uid: uid,
           body: text,
-          title: heading,
+          ingredients: heading,
           date: new Date(),
           picturesrc: pic,
           postId: newPostKey,
@@ -140,7 +140,7 @@
           author: uname,
           uid: uid,
           body: text,
-          title: heading,
+          ingredients: heading,
           date: new Date(),
           picturesrc: pic,
           postId: newPostKey,
@@ -239,6 +239,7 @@
             completeArray.push({ ingredients: [], body: "" });
           }
           completeArray[arraycount1].body = childData["body"];
+          completeArray[arraycount1].ingredients=childData["ingredients"].split(", ");
           //arraycount2 += 1;
           //completeArray[arraycount1][arraycount2] = childData["body"];
           //CheckTags(arraycount1, arraycount2);
@@ -295,6 +296,13 @@
       var searching=completeArray[firstindex][secondindex].split(" ");
       for(var i=0;i<searching.length)
     }*/
+    var blueButt = document.getElementById('bluebutton');
+    blueButt.onclick = function () {
+      var newIngredient = document.createElement("h3");
+      newIngredient.innerHTML = document.getElementById('ingredientselect').value;
+      document.getElementById("currentIngredients").apendChild(newIngredient);
+      console.log("pressed blueb button");
+    };
   </script>
 
 </head>
@@ -413,10 +421,10 @@
         <input id="bodyText" type="text" name="" value="">
         <br>
         <h2>Ingredients</h2>
-        <input list=text_editors>
-        <button id="bluebutton">▼</button>
+        <input list=text_editors id ="ingredientlist">
+        <button id="bluebutton" onclick="addIngredient()">▼</button>
         <datalist id="text_editors">
-          <select multiple size=8>
+          <select multiple size=8 id="ingredientselect" class="ingredientselect">
             <option value="Atom">Atom
             <option value="Brackets">Brackets
             <option value="Notepad ++">Notepad ++
@@ -427,6 +435,9 @@
             <option value="Wordpad">Wordpad
           </select>
         </datalist>
+        <div id="currentIngredients" style="height:50px">
+          <h3 id="newIngredient"></h3>
+        </div>
       </div>
 
       <button id="submitButton" type="button">Post It!</button>
@@ -434,6 +445,29 @@
   </div>
 
   <script>
+    var uploadString="";
+    function addIngredient() {
+      var newIngredient = document.getElementById("newIngredient");
+      //newIngredient.id="newIngredient";
+      
+      newIngredient.style.height="25px";
+      var e = document.getElementById("ingredientlist");
+      //console.log("E options is " + e.options);
+      //console.log(e.selectedIndex);
+      console.log("value of select is " + e.value);
+      if(uploadString==""){
+        uploadString+=e.value;
+        newIngredient.innerHTML += e.value;
+
+      }
+      else{
+        uploadString+=", " + e.value;
+        newIngredient.innerHTML+=", " + e.value;
+      }
+      document.getElementById("currentIngredients").appendChild(newIngredient);
+      console.log("pressed blueb button");
+    }
+
     // Get the modal
     var modal = document.getElementById('myModal');
 
@@ -447,6 +481,7 @@
 
     // When the user clicks the button, open the modal
     postButton.onclick = function () {
+      console.log(completeArray);
       modal.style.display = "block";
       //document.getElementById("tagsText").style.display = "none";
       //document.getElementById("tagsLabel").style.display = "none";
@@ -465,8 +500,9 @@
       var submit = document.getElementById('submitButton');
       submit.onclick = function () {
         console.log("Submitting post.");
+
         //console.log(document.getElementById("fileOpener").files);
-        writeNewPost(userRef.uid, userRef.displayName, userRef.photoURL, null, document.getElementById("bodyText").value, null)
+        writeNewPost(userRef.uid, userRef.displayName, userRef.photoURL, uploadString, document.getElementById("bodyText").value, null)
       }
     }
 
