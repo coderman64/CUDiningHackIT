@@ -337,11 +337,12 @@
     <div class="text-center">
       <div class="diningHall">
         <div class="main">
-          <h2>Choose a Dining Hall<h2>
-              <select name="">
-                <option value="1">Fresh Food Company</option>
-                <option value="2">Schilleter</option>
-              </select>
+          <p>
+            <h2 id="Schilleter">Schilleter</h2>
+            <h2 id="Core">Fresh Food Company</h2>
+          </p>
+
+
         </div>
       </div>
     </div>
@@ -489,6 +490,8 @@
     function create_custom_dropdowns() {
       $('select').each(function (i, select) {
         if (!$(this).next().hasClass('dropdown-select')) {
+          //if (!$(this).next().hasClass('notouch')) {
+
           $(this).after('<div class="dropdown-select wide ' + ($(this).attr('class') || '') + '" tabindex="0"><span class="current"></span><div class="list"><ul></ul></div></div>');
           var dropdown = $(this).next();
           var options = $(select).find('option');
@@ -498,6 +501,7 @@
             var display = $(o).data('display-text') || '';
             dropdown.find('ul').append('<li class="option ' + ($(o).is(':selected') ? 'selected' : '') + '" data-value="' + $(o).val() + '" data-display-text="' + display + '">' + $(o).text() + '</li>');
           });
+          //}
         }
       });
 
