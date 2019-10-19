@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Home Tab</title>
+  <link rel="stylesheet" href="resetstyle.css">
+  <link rel="stylesheet" href="home.css">
+  <link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Lilita+One" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyAciF6tIYYTc7hbE1OXLZ7E3wCVsu0qRW8",
+      authDomain: "cuhackit-cd650.firebaseapp.com",
+      databaseURL: "https://cuhackit-cd650.firebaseio.com",
+      projectId: "cuhackit-cd650",
+      storageBucket: "cuhackit-cd650.appspot.com",
+      messagingSenderId: "279286731064",
+      appId: "1:279286731064:web:4fabe058254c87e17a71cd",
+      measurementId: "G-Q1FBFFYXQR"
+    };
+    firebase.initializeApp(config);
+  </script>
+  <script type="text/javascript">
+    var currentGroupColor;
+    var userRef;
+    var currentposts = {};
+    var currentFollowing = [];
+    initApp = function () {
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+          // User is signed in.
+          userRef = user;
+          var database = firebase.database();
+          var displayName = user.displayName;
+          this.userPic = document.getElementById('user-pic');
+          var email = user.email;
+          var emailVerified = user.emailVerified;
+          var photoURL = user.photoURL;
+          var uid = user.uid;
+          var phoneNumber = user.phoneNumber;
+          var providerData = user.providerData;
+          this.userPic.src = photoURL;
+          try {
+            firebase.database().ref().child('users' + uid).set({
+              username: displayName,
+              email: email,
+              profile_picture: photoURL,
+              userId: uid
+            });
+
+          }
+          catch (error) {
+            firebase.database().ref().child('users' + uid).update({
+              username: displayName,
+              email: email,
+              profile_picture: photoURL,
+              userId: uid
+
+            });
+
+          }
+
+          //console.log("Trying to add the data");
+          user.getIdToken().then(function (accessToken) {
+            document.getElementById('sign-in-status').textContent = 'Signed in';
+            document.getElementById('sign-in').textContent = 'Sign out';
+            document.getElementById('account-details').textContent = JSON.stringify({
+              displayName: displayName,
+              email: email,
+              emailVerified: emailVerified,
+              phoneNumber: phoneNumber,
+              photoURL: photoURL,
+              uid: uid,
+              accessToken: accessToken,
+              providerData: providerData
+            }, null, '  ');
+          });
+        } else {
+          // User is signed out.
+          document.getElementById('sign-in-status').textContent = 'Signed out';
+          document.getElementById('sign-in').textContent = 'Sign in';
+          document.getElementById('account-details').textContent = 'null';
+        }
+      }, function (error) {
+        console.log(error);
+      });
+    };
+    window.addEventListener('load', function () {
+      initApp();
+
+    });
+
+  </script>
+</head>
+
+<nav class="nav-login">
+  <ul>
+    <li><a href="home.html">Home</a></li>
+    <li><a href="groups.html">Groups</a></li>
+    <li><a href="contact.html">Find</a></li>
+    <li><a href="login.html">Profile</a></li>
+
+    <li>
+      <div id="firebaseui-auth-container"></div>
+    </li>
+    <li>
+      <div><img id="user-pic"
+          src="https://cdn4.iconfinder.com/data/icons/forum-buttons-and-community-signs-1/794/profile-3-512.png"
+          style="  width: 40px;height: 40px;background-size: 40px;border-radius: 20px; right: 10px; top: 10px;"></div>
+    </li>
+  </ul>
+</nav>
+
+<body>
+  <button type="button" class="button" id="addPost">+</button>
+  <button type="button" class="button" id="addGroup">Create Group</button>
+
+  <br>
+  <div id="postContainer"></div>
+
+  <!-- The Modal -->
+  <div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close">&times;</span>
+        <h2 id="headerTitle">Add Post</h2>
+      </div>
+      <div class="modal-body">
+        <h3 id="titleLabel"></h3>
+        <input id="titleText" type="text" name="" value="">
+        <h3 id="bodyLabel"></h3>
+        <input id="bodyText" type="text" name="" value="">
+        <h3 id="tagsLabel" style="display: none">Tags</h3>
+        <input id="tagsText" type="text" name="" value="" style="display: none">
+        <h3 id="fileLabel" style="display: none"></h3>
+        <input id="fileOpener" style="display: none" type="file" name="" value="">
+        <div id="colorChooser" style="height: 50px;">
+          <input type="color" id="colorInput" style="width: 60;height:30px;" value="#e1e1e1">
+          <!--
+          <button id="blue" onclick="setColor('blue')" style="width: 30;height:20px;background-color: blue;"></button>
+          <button id="green" onclick="setColor('green')"style="width: 30;height:20px;background-color: green;"></button>
+          <button id="orange" onclick="setColor('orange')"style="width: 30;height:20px;background-color: orange;"></button>
+          <button id="yellow" onclick="setColor('yellow')"style="width: 30;height:20px;background-color: yellow;"></button>
+          <button id="red" onclick="setColor('red')"style="width: 30;height:20px;background-color: red;"></button>
+          <p id="colorLabel" style="display:none;"></p>
+
+          -->
+
+        </div>
+
+        <button id="submitButton" type="button">Post It!</button>
+      </div>
+    </div>
+
+    <script>
+      // Get the modal
+      var modal = document.getElementById('myModal');
+
+      // Get the button that opens the modal
+      var postButton = document.getElementById("addPost");
+
+      var groupButton = document.getElementById("addGroup");
+
+      // Get the <span> element that closes the modal
+      var span = document.getElementsByClassName("close")[0];
+
+      // When the user clicks the button, open the modal
+      postButton.onclick = function () {
+        modal.style.display = "block";
+        document.getElementById("tagsText").style.display = "none";
+        document.getElementById("tagsLabel").style.display = "none";
+        document.getElementById("fileLabel").style.display = "block";
+        document.getElementById("fileOpener").style.display = "block";
+        document.getElementById("colorChooser").style.display = "none";
+
+        var modalHeader = document.getElementById("headerTitle");
+        modalHeader.innerHTML = "Add Post";
+        var title = document.getElementById("titleLabel");
+        title.innerHTML = "Title"
+        var body = document.getElementById("bodyLabel");
+        body.innerHTML = "Body"
+        var fileLabel = document.getElementById("fileLabel");
+        fileLabel.innerHTML = "Image (optional)";
+        var submit = document.getElementById('submitButton');
+        submit.onclick = function () {
+          console.log("Submitting post.");
+          console.log(document.getElementById("fileOpener").files);
+        }
+      }
+
+      groupButton.onclick = function () {
+        modal.style.display = "block";
+        document.getElementById("tagsText").style.display = "block";
+        document.getElementById("tagsLabel").style.display = "block";
+        document.getElementById("colorChooser").style.display = "block";
+        document.getElementById("fileLabel").style.display = "none";
+        document.getElementById("fileOpener").style.display = "none";
+        var modalHeader = document.getElementById("headerTitle");
+        modalHeader.innerHTML = "Add Group";
+        var groupName = document.getElementById("titleLabel");
+        groupName.innerHTML = "Group Name"
+        var groupDesc = document.getElementById("bodyLabel");
+        groupDesc.innerHTML = "Description"
+
+        //Adding extra imput
+        var modalContainer = document.getElementById("modal-Body");
+        var submit = document.getElementById('submitButton');
+        submit.onclick = function () {
+          console.log("Submitting group.");
+          //console.log(document.getElementById("fileOpener").files);
+          modal.style.display = "none";
+        }
+
+
+      }
+
+      // When the user clicks on <span> (x), close the modal
+      span.onclick = function () {
+        modal.style.display = "none";
+      }
+
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+
+
+    </script>
+</body>
+
+</html>
