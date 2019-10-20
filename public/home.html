@@ -31,6 +31,127 @@
   <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 
   <script>
+
+var menus = {};
+    var fulllist = {};
+
+    function printSchilletter() {
+      console.log("Schilletter: " + menus.schiletter.toString());
+    }
+    function printCore() {
+      console.log("FreshFoodCompany: " + menus.core.toString());
+    }
+    function reqListener() {
+      console.log(this.responseText);
+      menus = JSON.parse(oReq.responseText);
+      printSchilletter();
+      printCore();
+    }
+
+    console.log("SENDING REQUEST");
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", reqListener);
+    oReq.open("GET", "http://ec2-52-14-74-248.us-east-2.compute.amazonaws.com/menus.json");
+    oReq.send();
+
+    function fullReqLis(){
+      console.log("RESPONSE RECIEVED");
+      fulllist = JSON.parse(fullReq.responseText);
+      var dropdown = document.getElementById("ingredientselect");
+      console.log(fulllist)
+      for(var i = 0; i < fulllist.items.length; i++){
+        console.log("NEW ITEM: "+fulllist.items[i]);
+        var newitem = document.createElement("option");
+        newitem.innerHTML = fulllist.items[i];
+        newitem.value = fulllist.items[i];
+        dropdown.appendChild(newitem);
+      }
+    }
+
+    var fullReq = new XMLHttpRequest();
+    fullReq.addEventListener("load", fullReqLis);
+    fullReq.open("GET", "http://ec2-52-14-74-248.us-east-2.compute.amazonaws.com/fulllist.json");
+    fullReq.send();
+    console.log("REQUEST SENT");
+
+    //console.log(oReq.responseText);
+    var schiletterPress = false;
+    var corePress = false;
+
+
+    function loadHacks(){
+      shownarray=[];
+      var menuarray = corePress?menus.core:menus.schiletter;
+      console.log(completeArray);
+      for (var i = 0; i < completeArray.length; i++) {
+        var good = false;
+        for (var a = 0; a < completeArray[i].ingredients.length; a++) {
+          for (var j = 0; j < menuarray.length; j++) {
+            var words = menuarray[j].split(' ');
+            var wordsIng = completeArray[i].ingredients[a].split(' ');
+            for(var k = 0; k < words.length; k++){
+              for(var l = 0; l < wordsIng.length; l++){
+                if (words[k].toLowerCase() == wordsIng[l].toLowerCase()&&(shownarray.length < 1||(completeArray[i].body!= shownarray[shownarray.length-1].body))) {
+                  good = true;
+                }
+              }
+            }
+          }
+        }
+        if(good){
+              shownarray.push([completeArray[i].body,completeArray[i].ingredients]);
+              l = wordsIng.length;
+              k = words.length;
+            }
+      }
+      var foodhackshere = document.getElementById("foodhackshere");
+      foodhackshere.innerHTML = "";
+      foodhackshere.style.width = "100%";
+      var title1 = document.createElement("h2");
+      title1.innerHTML = "Today's Menu:";
+      foodhackshere.appendChild(title1);
+      var newTable = document.createElement("table");
+    for(var n =0; n<menuarray.length/2;n++){
+      var thisrow = document.createElement("row");
+      for(var i = 0; i < 2; i++){
+        var menuitem = document.createElement("h4");
+        menuitem.innerHTML = menuarray[n*2+i];
+        thisrow.appendChild(menuitem);
+      }
+      newTable.appendChild(thisrow);
+    }
+    foodhackshere.appendChild(newTable);
+    title1 = document.createElement("h2");
+      title1.innerHTML = "Suggested Hacks:";
+      foodhackshere.appendChild(title1);
+    for(var n=0;n<shownarray.length;n++){
+      var displayed=document.createElement("h3");
+      var ingredients=document.createElement("h6");
+      ingredients.style = "width:100%; align-text:center;margin: 0 50px 0 50px;";
+      displayed.innerHTML=shownarray[n][0];
+      ingredients.innerHTML="ingredients: "+shownarray[n][1].toString();
+      foodhackshere.appendChild(displayed);
+      foodhackshere.appendChild(ingredients);
+      console.log("AAAAAAAAAAA");
+    }
+
+    }
+
+    function schilletterButton() {
+      schiletterPress = true;
+      corePress = false;
+      console.log("schilleter pressed.");
+      loadHacks();
+    }
+
+    function coreButton() {
+      corePress = true;
+      schiletterPress = false;
+      console.log("core pressed.");
+      loadHacks();
+    }
+
     // Initialize Firebase
     var config = {
       apiKey: "AIzaSyAciF6tIYYTc7hbE1OXLZ7E3wCVsu0qRW8",
@@ -170,6 +291,7 @@
       document.location.reload(true);
     }
     var addPostPresent = false;
+    var shownarray=[];
     function loadFeed() {
       console.log(completeArray);
       completeArray = [
@@ -293,23 +415,13 @@
           document.body.appendChild(postContainer);*/
         });
       });
-      arraycount1 = 0;
-      var shownarray=[];
-      for (var i = 0; i < completeArray.length; i++) {
-        for (var a = 0; a < completeArray[i].ingredients.length; a++) {
-          for (var j = 0; j < menuarray.length; j++) {
-            if (menuarray[j] == completeArray[i].ingredients[a]) {
-              shownarray.push(completeArray[i].body);
-            }
-          }
-        }
-      }
+      var newJsonThing = "[{\"body\": \"Egg Salad\", \"ingredients\": [\"Hard Boiled Eggs\", \"Mayo\", \"Mustard\", \"Hot Sauce\"]}, {\"body\": \"Make Your Own Pasta Salad\", \"ingredients\": [\"Pasta\", \"Salad Bar Vegetables\"]}, {\"body\": \"Yogurt Supreme\", \"ingredients\": [\"Yogurt\", \"Ice Cream Toppings\"]}, {\"body\": \"Bacon Grilled Cheese\", \"ingredients\": [\"Bread\", \"Cheese\", \"Bacon\"]}, {\"body\": \"Chicken and Waffle\", \"ingredients\": [\"Belgian Waffle\", \"Chicken of Choice\", \"Syrup \"]}, {\"body\": \"Waffle Supreme\", \"ingredients\": [\"Belgian Waffle\", \"Ice Cream Toppings\", \"Ice Cream\"]}, {\"body\": \"Patty Melt\", \"ingredients\": [\"Bread\", \"Burger\", \"Cheese\"]}, {\"body\": \"Banana Split\", \"ingredients\": [\"Banana\", \"Ice Cream Toppings\", \"Ice Cream\"]}, {\"body\": \"Avacado Toast\", \"ingredients\": [\"Bread\", \"Avacado\", \"Salt\", \"Pepper\", \"Salad Bar Vegetables\"]}, {\"body\": \"Mac and Cheese Burger\", \"ingredients\": [\"Burger\", \"Mac and Cheese\"]}, {\"body\": \"Breakfast Sandwich\", \"ingredients\": [\"Omelette\", \"Bagel\"]}, {\"body\": \"Quesadilla\", \"ingredients\": [\"Cheese\", \"Tortilla\"]}, {\"body\": \"Milkshake\", \"ingredients\": [\"Ice Cream\", \"Milk\"]}, {\"body\": \"Big Burger\", \"ingredients\": [\"Burger\", \"French Fries\"]}, {\"body\": \"Caprese Bagel\", \"ingredients\": [\"Bagel\", \"Cream Cheese\", \"Spinach\", \"Tomatoes\", \"Balsamic\"]}, {\"body\": \"Chicken Wrap\", \"ingredients\": [\"Chicken \", \"Tortilla\", \"Salad Bar Vegetables\"]}, {\"body\": \"Chicken Quesadilla\", \"ingredients\": [\"Chicken Patties\", \"Cheese\", \"Tortilla\"]}, {\"body\": \"Veggie Wrap\", \"ingredients\": [\"Tortilla \", \"Salad Bar Vegetables\"]}, {\"body\": \"Ice Cream Sandwich Supreme\", \"ingredients\": [\"Cookies\", \"Ice Cream Toppings\", \"Ice Cream\"]}, {\"body\": \"Big Hot Dog \", \"ingredients\": [\"Hot Dog\", \"Mac and Cheese\", \"Bacon\"]}, {\"body\": \"Dessert Cereal\", \"ingredients\": [\"Cereal\", \"Ice Cream  \"]}, {\"body\": \"Brownie Ice Cream\", \"ingredients\": [\"Ice Cream\", \"Brownies\", \"Ice Cream Toppings\"]}, {\"body\": \"Blizzard\", \"ingredients\": [\"Milk\", \"Ice Cream  \", \"Ice Cream Toppings\"]}, {\"body\": \"Peanut Yogurt\", \"ingredients\": [\"Peanut Butter\", \"Yogurt\"]}, {\"body\": \"Rarlic Pizza\", \"ingredients\": [\"Pizza\", \"Ranch\", \"Garlic\"]}, {\"body\": \"Toastes PB&J\", \"ingredients\": [\"Panini Pressed Bread\", \"Jelly\", \"Peanut Butter\"]}, {\"body\": \"Paninied Breakfast Sandwich\", \"ingredients\": [\"Bread\", \"Eggs\", \"Bacon or Sausage\", \"Cheese\"]}, {\"body\": \"Yogurt Parfait\", \"ingredients\": [\"Yogurt\", \"Granola\", \"Fruit\"]}, {\"body\": \"Tendy Tuesday\", \"ingredients\": [\"Chicken Tenders\", \"Tortilla\", \"Lettuce\", \"Hot Sauce\", \"Ranch\", \"Cheese\"]}, {\"body\": \"Grilled Chicken Salad\", \"ingredients\": [\"Salad Bar Vegetables\", \"Grilled Chicken\"]}, {\"body\": \"Pizza Bagel\", \"ingredients\": [\"Pasta Sauce\", \"Bagel\", \"Salad Bar Toppings\"]}, {\"body\": \"Breakfast Biscuit\", \"ingredients\": [\"Biscuit\", \"Eggs\", \"Cheese\", \"Sausage\"]}, {\"body\": \"Buffalo Chicken Salad \", \"ingredients\": [\"Salad Bar Vegetables\", \"Buffalo Sauce\", \"Ranch\", \"Chicken\"]}, {\"body\": \"Taco Quesadilla\", \"ingredients\": [\"Taco Meat\", \"Cheese\", \"Tortilla\", \"Salad Bar Vegetables\"]}, {\"body\": \"Ice Cream Sunday\", \"ingredients\": [\"Strawberry Ice Cream\", \"Vanilla Ice Cream\", \"Granola\", \"Peanut Butter\", \"Banana\", \"Honey\"]}, {\"body\": \"Bagel Sandwich\", \"ingredients\": [\"Guacamole\", \"Salad Bar Vegetables\"]}, {\"body\": \"Cookie Ice Cream\", \"ingredients\": [\"Mashed Cookies\", \"Ice Cream\"]}, {\"body\": \"Baked Potatoe\", \"ingredients\": [\"Potatoe\", \"Lettuce\", \"Sour Cream\", \"Bacon\", \"Cheese\"]}, {\"body\": \"Panini Warmed Cookies\", \"ingredients\": [\"Paninied Cookies\", \"Ice Cream Toppings\", \"Ice Cream\", \"Chocolate Syrup\"]}, {\"body\": \"Spicy Sausage Biscuit with Tots\", \"ingredients\": [\"Biscuit\", \"Tater Tots\", \"Sausage\"]}, {\"body\": \"Upgraded Panini\", \"ingredients\": [\"Bread\", \"Bacon\", \"Cheese\"]}, {\"body\": \"Loaded Mac and Cheese\", \"ingredients\": [\"Mac and Cheese\", \"Bacon\", \"Chiken\"]}, {\"body\": \"Breakfast Bowl\", \"ingredients\": [\"Grits \", \"Eggs\", \"Bacon or Sausage\"]}, {\"body\": \"Make Your Own Pizza\", \"ingredients\": [\"Pizza\", \"Salad Bar Toppings\"]}, {\"body\": \"Warmed Pasteries\", \"ingredients\": [\"Toasted Cookies\", \"Toasted Brownies\"]}, {\"body\": \"Rice Crispie Treat\", \"ingredients\": [\"Cereal\", \"Ice Cream Toppings\"]}, {\"body\": \"Root Bear Float\", \"ingredients\": [\"Soda\", \"Ice Cream\"]}, {\"body\": \"Arnold Palmer\", \"ingredients\": [\"Lemonade\", \"Tea\"]}, {\"body\": \"Waffle Ice Cream Sandwich\", \"ingredients\": [\"Ice Cream\", \"Waffle\"]}, {\"body\": \"Sweetened Iced Coffee\", \"ingredients\": [\"Coffee\", \"Milk\", \"Ice cream Syrups\"]}, {\"body\": \"Breakfast Bagel\", \"ingredients\": [\"Bagel\", \"Eggs\", \"Cheese\", \"Bacon\", \"Sausage\"]}, {\"body\": \"Waffle Breakfast Sandwich\", \"ingredients\": [\"Belgian Waffle\", \"Bacon\", \"Egg\", \"Cheese\"]}, {\"body\": \"Chilli Cheese Fries\", \"ingredients\": [\"Chilli \", \"Cheese\", \"Fries\"]}, {\"body\": \"Pork Salad\", \"ingredients\": [\"Pulled Pork\", \"Salad Bar Vegetables\"]}, {\"body\": \"Meatball Sub\", \"ingredients\": [\"Meatballs\", \"Bread\", \"Cheese\"]}]";
+      var parsedJsonThing = JSON.parse(newJsonThing);
+      
+      completeArray = completeArray.concat(parsedJsonThing);
+      //completeArray[arraycount1].body = childData["body"];
+      //completeArray[arraycount1].ingredients = childData["ingredients"].split(", ");
 
-    }
-    for(var n=0;n<shownarray.length;n++){
-      var displayed=document.createElement("h3");
-      displayed.innerHTML=shownarray[n];
-      document.appendChild(displayed);
     }
 
     function parseDate(input) {
@@ -328,63 +440,7 @@
       document.getElementById("currentIngredients").apendChild(newIngredient);
       console.log("pressed blueb button");
     };
-    var menus = {};
-    var fulllist = {};
 
-    function printSchilletter() {
-      console.log("Schilletter: " + menus.schiletter.toString());
-    }
-    function printCore() {
-      console.log("FreshFoodCompany: " + menus.core.toString());
-    }
-    function reqListener() {
-      console.log(this.responseText);
-      menus = JSON.parse(oReq.responseText);
-      printSchilletter();
-      printCore();
-    }
-
-    console.log("SENDING REQUEST");
-
-    var oReq = new XMLHttpRequest();
-    oReq.addEventListener("load", reqListener);
-    oReq.open("GET", "http://ec2-52-14-74-248.us-east-2.compute.amazonaws.com/menus.json");
-    oReq.send();
-
-    function fullReqLis(){
-      console.log("RESPONSE RECIEVED");
-      fulllist = JSON.parse(fullReq.responseText);
-      var dropdown = document.getElementById("ingredientselect");
-      for(var i = 0; i < fulllist.items.length; i++){
-        console.log("NEW ITEM: "+items[i]);
-        var newitem = document.createElement("option");
-        newitem.innerHTML = fulllist.items[i];
-        newitem.value = fulllist.items[i];
-        dropdown.appendChild(newitem);
-      }
-    }
-
-    var fullReq = new XMLHttpRequest();
-    fullReq.addEventListener("load", fullReqLis);
-    fullReq.open("GET", "http://ec2-52-14-74-248.us-east-2.compute.amazonaws.com/fulllist.json");
-    fullReq.send();
-    console.log("REQUEST SENT");
-
-    //console.log(oReq.responseText);
-    var schiletterPress = false;
-    var corePress = false;
-
-    function schilletterButton() {
-      schiletterPress = true;
-      corePress = false;
-      console.log("schilleter pressed.");
-    }
-
-    function coreButton() {
-      corePress = true;
-      schiletterPress = false;
-      console.log("core pressed.");
-    }
 
   </script>
 
@@ -424,7 +480,7 @@
     <div class="bg-circle-4 bg-circle"></div>
   </header>
 
-  <section>
+  <section style="width:100%;">
     <div class="text-center">
       <div class="diningHall">
         <div class="main" style="margin-top: 30px;">
@@ -434,6 +490,8 @@
         </div>
       </div>
     </div>
+
+    <div id="foodhackshere"style="width=100%;"></div>
   </section>
 
   <section>
@@ -471,7 +529,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <span class="close">&times;</span>
-        <h2 id="headerTitle">Add Post</h2>
+        <h2 id="headerTitle"></h2>
       </div>
       <div class="modal-body">
 
@@ -483,14 +541,7 @@
         <button id="bluebutton" onclick="addIngredient()">▼</button>
         <datalist id="text_editors">
           <select multiple id="ingredientselect" class="ingredientselect">
-            <!-- <option value="Atom">Atom
-            <option value="Brackets">Brackets
-            <option value="Notepad ++">Notepad ++
-            <option value="Notepad">Notepad
-            <option value="Sublime Text">Sublime Text
-            <option value="TextEdit">TextEdit
-            <option value="TextMate">TextMate
-            <option value="Wordpad">Wordpad -->
+
           </select>
         </datalist>
         <div id="currentIngredients" style="height:50px">
@@ -553,7 +604,7 @@
       //var title = document.getElementById("titleLabel");
       //title.innerHTML = "Title"
       var body = document.getElementById("bodyLabel");
-      body.innerHTML = "Body"
+      body.innerHTML = "Hack Title"
       //var fileLabel = document.getElementById("fileLabel");
       //fileLabel.innerHTML = "Image (optional)";
       var submit = document.getElementById('submitButton');
